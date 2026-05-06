@@ -120,14 +120,38 @@ plt.close()
 # ===================== ГРАФИК 2: Источники трафика (Donut) =====================
 src = sources.copy()
 fig, ax = plt.subplots(figsize=(9, 7))
-colors_pie = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#34D399'][:len(src)]
-wedges, texts, autotexts = ax.pie(src['Визиты'], labels=src['Источник трафика'],
-                                  autopct='%1.1f%%', colors=colors_pie,
-                                  startangle=90, pctdistance=0.78,
-                                  wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2))
-for t in texts: t.set(color='white', fontsize=10)
-for a in autotexts: a.set(color='white', fontsize=9, fontweight='bold')
-ax.text(0, 0, f'{src["Визиты"].sum()}\nвизитов', ha='center', va='center', fontsize=13, fontweight='bold', color='white')
+colors_pie = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#34D399',
+              '#F472B6', '#FB923C', '#60A5FA'][:len(src)]
+
+# убираем длинные подписи с самого кольца, оставляем только проценты
+wedges, texts, autotexts = ax.pie(
+    src['Визиты'],
+    labels=None,                     # без текстовых меток
+    autopct='%1.1f%%',
+    colors=colors_pie,
+    startangle=90,
+    pctdistance=0.65,                # проценты ближе к центру кольца
+    wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2)
+)
+
+for a in autotexts:
+    a.set(color='white', fontsize=9, fontweight='bold')
+
+# сумма в центре
+total_src = src['Визиты'].sum()
+ax.text(0, 0, f'{total_src}\nвизитов', ha='center', va='center',
+        fontsize=13, fontweight='bold', color='white')
+
+# легенда с реальными названиями источников
+ax.legend(wedges, src['Источник трафика'],
+          title="Источники",
+          loc='center left',
+          bbox_to_anchor=(1, 0, 0.5, 1),
+          facecolor='#0F1F3D',
+          edgecolor='#4A6080',
+          labelcolor='white',
+          fontsize=9)
+
 ax.set_title('Источники трафика')
 fig.tight_layout()
 plt.savefig('images/02_traffic_sources.png', dpi=150, bbox_inches='tight')

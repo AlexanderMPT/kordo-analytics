@@ -123,28 +123,30 @@ fig, ax = plt.subplots(figsize=(9, 7))
 colors_pie = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#34D399',
               '#F472B6', '#FB923C', '#60A5FA'][:len(src)]
 
-# убираем длинные подписи с самого кольца, оставляем только проценты
-wedges, texts, autotexts = ax.pie(
+# Строим кольцо без подписей
+wedges, texts = ax.pie(
     src['Визиты'],
-    labels=None,                     # без текстовых меток
-    autopct='%1.1f%%',
+    labels=None,
+    autopct=None,                   # ❗ убрали проценты с кольца
     colors=colors_pie,
     startangle=90,
-    pctdistance=0.65,                # проценты ближе к центру кольца
     wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2)
 )
 
-for a in autotexts:
-    a.set(color='white', fontsize=9, fontweight='bold')
-
-# сумма в центре
+# Общая сумма в центре
 total_src = src['Визиты'].sum()
 ax.text(0, 0, f'{total_src}\nвизитов', ha='center', va='center',
         fontsize=13, fontweight='bold', color='white')
 
-# легенда с реальными названиями источников
-ax.legend(wedges, src['Источник трафика'],
-          title="Источники",
+# Создаём подписи для легенды: «Название — 12.5%»
+labels_with_pct = [
+    f'{row["Источник трафика"]} — {row["Визиты"]/total_src*100:.1f}%'
+    for _, row in src.iterrows()
+]
+
+# Рисуем легенду справа
+ax.legend(wedges, labels_with_pct,
+          title="Источники и доли",
           loc='center left',
           bbox_to_anchor=(1, 0, 0.5, 1),
           facecolor='#0F1F3D',

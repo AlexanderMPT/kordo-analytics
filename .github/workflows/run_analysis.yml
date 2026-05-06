@@ -1,0 +1,33 @@
+name: Run analysis and push images
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout репозитория
+        uses: actions/checkout@v4
+
+      - name: Установка Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Запуск скрипта
+        run: python analysis.py
+
+      - name: Коммит и пуш изображений, если есть изменения
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add images/
+          git diff --staged --quiet || (git commit -m "Авто-обновление графиков" && git push)

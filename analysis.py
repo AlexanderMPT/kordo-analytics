@@ -206,12 +206,17 @@ plt.savefig('images/06_kpi_summary.png', dpi=150, bbox_inches='tight')
 plt.close()
 
 # ===================== ГРАФИК 7: Распределение полов =====================
-fig, ax = plt.subplots(figsize=(7, 5))
-gender_vals = gender[['Пол', 'Визиты']]
-ax.pie(gender_vals['Визиты'], labels=gender_vals['Пол'], autopct='%1.1f%%',
-       colors=[ACCENT, ACCENT2], startangle=90,
-       textprops={'color': 'white', 'fontsize': 10})
+fig, ax = plt.subplots(figsize=(7, 4))
+gender_vals = gender[['Пол', 'Визиты']].copy()
+bars = ax.bar(gender_vals['Пол'], gender_vals['Визиты'], color=[ACCENT, ACCENT2], width=0.4)
+total_g = gender_vals['Визиты'].sum()
+for bar, val in zip(bars, gender_vals['Визиты']):
+    pct = val / total_g * 100
+    ax.text(bar.get_x() + bar.get_width()/2, val + 0.5,
+            f'{int(val)} ({pct:.1f}%)', ha='center', color='white', fontsize=10)
+ax.set_ylim(top=ax.get_ylim()[1] * 1.2)
 ax.set_title('Распределение визитов по полу')
+ax.grid(axis='y', alpha=0.4)
 fig.tight_layout()
 plt.savefig('images/07_gender.png', dpi=150, bbox_inches='tight')
 plt.close()

@@ -118,73 +118,27 @@ plt.savefig('images/01_visits_conversions.png', dpi=150, bbox_inches='tight')
 plt.close()
 
 # ===================== ГРАФИК 2: Источники трафика (Donut) =====================
-import matplotlib.pyplot as plt
-import matplotlib.patheffects as pe
-import numpy as np
+src = sources.copy()
+total_src = src['Визиты'].sum()
+src_pct = (src['Визиты'] / total_src * 100).round(1)
+src_colors = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#F472B6', '#60A5FA'][:len(src)]
 
-# Предполагаю, что у тебя df с колонкой 'Год' и колонками по регионам
-# Если другая структура — скажи, подправлю
-
-df_plot = electricity.copy()  # замени на своё название датафрейма
-
-colors_line = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#F472B6']
-regions = [col for col in df_plot.columns if col != 'Год']
-
-fig, ax = plt.subplots(figsize=(13, 7), facecolor='#0F1F3D')
-ax.set_facecolor('#0F1F3D')
-
-# --- Линии ---
-for i, region in enumerate(regions):
-    color = colors_line[i % len(colors_line)]
-    ax.plot(
-        df_plot['Год'], df_plot[region],
-        color=color, linewidth=2.2, marker='o',
-        markersize=4, label=region
-    )
-    # Подпись последнего значения прямо на линии
-    last_x = df_plot['Год'].iloc[-1]
-    last_y = df_plot[region].iloc[-1]
-    ax.annotate(
-        f'{last_y:,.0f}',
-        xy=(last_x, last_y),
-        xytext=(8, 0), textcoords='offset points',
-        ha='left', va='center',
-        fontsize=8, color=color, fontweight='bold'
-    )
-
-# --- Сетка ---
-ax.grid(color='#2A3F5F', linestyle='--', linewidth=0.7, alpha=0.6)
-ax.set_axisbelow(True)
-
-# --- Оси ---
-ax.tick_params(colors='#94A3B8', labelsize=9)
-ax.spines[['top', 'right']].set_visible(False)
-ax.spines[['left', 'bottom']].set_color('#2A3F5F')
-ax.yaxis.label.set_color('#94A3B8')
-ax.xaxis.label.set_color('#94A3B8')
-
-ax.set_xlabel('Год', fontsize=10, color='#94A3B8', labelpad=10)
-ax.set_ylabel('Потребление электроэнергии (млн.кВт.час)', fontsize=10,
-              color='#94A3B8', labelpad=10)
-
-# --- Легенда ---
-legend = ax.legend(
-    loc='upper left',
-    facecolor='#1E3A5F',
-    edgecolor='#4A6080',
-    labelcolor='white',
-    fontsize=9,
-    framealpha=0.9
-)
-
-ax.set_title('Потребление электроэнергии по субъектам РФ',
-             color='white', fontsize=14, pad=20)
-
+fig, ax = plt.subplots(figsize=(10, 7))
+wedges, _ = ax.pie(src['Визиты'], labels=None, colors=src_colors,
+                   startangle=90, wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2))
+legend_labels = [
+    f"{row['Источник трафика']}: {row['Визиты']} viz ({pct}%)"
+    for (_, row), pct in zip(src.iterrows(), src_pct)
+]
+ax.legend(wedges, legend_labels, title="Источники трафика", loc="center left",
+          bbox_to_anchor=(1, 0, 0.5, 1), facecolor='#1a2f4e', edgecolor='#4A6080',
+          labelcolor='white', title_fontsize=11)
+ax.text(0, 0, f'{total_src}\nвизитов', ha='center', va='center',
+        fontsize=13, fontweight='bold', color='white')
+ax.set_title('Источники трафика')
 fig.tight_layout()
-plt.savefig('images/03_electricity.png', dpi=150, bbox_inches='tight',
-            facecolor='#0F1F3D')
+plt.savefig('images/02_sources.png', dpi=150, bbox_inches='tight')
 plt.close()
-
 # ===================== ГРАФИК 3: Глубина просмотра по возрасту =====================
 age_clean = age.sort_values('Глубина просмотра', ascending=True)
 fig, ax = plt.subplots(figsize=(10, 6))

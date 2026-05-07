@@ -129,15 +129,18 @@ fig, ax = plt.subplots(figsize=(11, 6))
 
 bars = ax.barh(src['Источник трафика'], src['Визиты'], color=bar_colors, height=0.6)
 
+# Поставь вот это:
+fixed_x = src['Визиты'].max() * 1.05  # одна фиксированная позиция для всех
 for bar, val, pct in zip(bars, src['Визиты'], src['Доля']):
     ax.text(
-        bar.get_width() + total_src * 0.005,
+        fixed_x,
         bar.get_y() + bar.get_height() / 2,
         f'{int(val)}  ({pct}%)',
-        va='center', color='white', fontsize=9
+        va='center', ha='left', color='white', fontsize=9
     )
 
-ax.set_xlim(0, src['Визиты'].max() * 1.25)
+ax.set_xlim(0, src['Визиты'].max() * 1.35)  # чуть шире чтобы подписи влезли
+
 ax.set_title('Источники трафика', fontsize=13, pad=14)
 ax.set_xlabel('Визиты', fontsize=10)
 ax.grid(axis='x', alpha=0.4)

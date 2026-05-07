@@ -117,38 +117,50 @@ fig.tight_layout()
 plt.savefig('images/01_visits_conversions.png', dpi=150, bbox_inches='tight')
 plt.close()
 
-# ===================== ГРАФИК 2: Источники трафика (Horizontal Bar) =====================
-src = sources.sort_values('Визиты', ascending=True).copy()
+
+# ===================== ГРАФИК 2: Источники трафика =====================
+src = sources[sources['Источник трафика (детально)'].notna()].copy()
+src = src.sort_values('Визиты', ascending=True).reset_index(drop=True)
 total_src = src['Визиты'].sum()
 src['Доля'] = (src['Визиты'] / total_src * 100).round(1)
 
-# Цвет топ-источника выделяем отдельно
-bar_colors = [ACCENT2 if i == len(src) - 1 else ACCENT for i in range(len(src))]
+# Цвет по категории
+category_colors = {
+    'Прямые заходы':                  '#0A7EA4',
+    'Переходы из поисковых систем':   '#F4A233',
+    'Внутренние переходы':            '#7BC8A4',
+    'Переходы по ссылкам на сайтах':  '#A78BFA',
+}
+bar_colors = [category_colors.get(cat, '#888888') for cat in src['Источник трафика']]
 
-fig, ax = plt.subplots(figsize=(11, 6))
+# Метка = детальный источник
+labels = src['Источник трафика (детально)']
 
-bars = ax.barh(src['Источник трафика'], src['Визиты'], color=bar_colors, height=0.6)
+fig, ax = plt.subplots(figsize=(12, 7))
+bars = ax.barh(labels, src['Визиты'], color=bar_colors, height=0.6)
 
-# Поставь вот это:
-fixed_x = src['Визиты'].max() * 1.05  # одна фиксированная позиция для всех
+fixed_x = src['Визиты'].max() * 1.05
 for bar, val, pct in zip(bars, src['Визиты'], src['Доля']):
-    ax.text(
-        fixed_x,
-        bar.get_y() + bar.get_height() / 2,
-        f'{int(val)}  ({pct}%)',
-        va='center', ha='left', color='white', fontsize=9
-    )
+    ax.text(fixed_x, bar.get_y() + bar.get_height() / 2,
+            f'{int(val)}  ({pct}%)',
+            va='center', ha='left', color='white', fontsize=9)
 
-ax.set_xlim(0, src['Визиты'].max() * 1.35)  # чуть шире чтобы подписи влезли
-
+ax.set_xlim(0, src['Визиты'].max() * 1.35)
 ax.set_title('Источники трафика', fontsize=13, pad=14)
 ax.set_xlabel('Визиты', fontsize=10)
 ax.grid(axis='x', alpha=0.4)
 ax.spines[['top', 'right']].set_visible(False)
 
+# Легенда по категориям
+from matplotlib.patches import Patch
+legend_el = [Patch(facecolor=c, label=k) for k, c in category_colors.items()]
+ax.legend(handles=legend_el, facecolor='#1a2f4e', edgecolor='#4A6080',
+          fontsize=8, loc='lower right')
+
 fig.tight_layout()
 plt.savefig('images/02_sources.png', dpi=150, bbox_inches='tight')
 plt.close()
+
 
 # ===================== ГРАФИК 3: Глубина просмотра по возрасту =====================
 age_clean = age.sort_values('Глубина просмотра', ascending=True)

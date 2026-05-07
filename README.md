@@ -9,7 +9,7 @@
 ## 📊 Визуализации (автоматически генерируются).
 
 ![Динамика визитов и конверсий](images/01_visits_conversions.png)
-![Источники трафика](images/02_traffic_sources.png)
+![Источники трафика](images/02_sources.png)
 ![Глубина просмотра по возрасту](images/03_age_depth.png)
 ![Топ-10 страниц по просмотрам](images/04_top_pages.png)
 ![Визиты по дням недели](images/05_weekday.png)

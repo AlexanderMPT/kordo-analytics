@@ -117,22 +117,53 @@ fig.tight_layout()
 plt.savefig('images/01_visits_conversions.png', dpi=150, bbox_inches='tight')
 plt.close()
 
-# ===================== ГРАФИК 2: Источники трафика (Donut) =====================
-src = sources.copy()
-total_src = src['Визиты'].sum()
-src_pct = (src['Визиты'] / total_src * 100).round(1)
-src_colors = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#F472B6', '#60A5FA'][:len(src)]
 
-fig, ax = plt.subplots(figsize=(10, 7))
-wedges, _ = ax.pie(src['Визиты'], labels=None, colors=src_colors,
-                   startangle=90, wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2))
+# ===================== ГРАФИК 2: Источники трафика (Donut) — 3 группы =====================
+src = sources.copy()
+
+# Группируем: прямые, поисковые, всё остальное
+def group_source(name):
+    n = str(name).lower()
+    if 'прямые' in n:
+        return 'Прямые заходы'
+    elif 'поисков' in n:
+        return 'Поисковые системы'
+    else:
+        return 'Остальные источники'
+
+src['Группа'] = src['Источник трафика'].apply(group_source)
+grouped = src.groupby('Группа')['Визиты'].sum()
+
+# Фиксируем порядок
+order = ['Прямые заходы', 'Поисковые системы', 'Остальные источники']
+grouped = grouped.reindex(order)
+
+total_src = grouped.sum()
+src_pct = (grouped / total_src * 100).round(1)
+src_colors = ['#0A7EA4', '#F4A233', '#7BC8A4']
+
+fig, ax = plt.subplots(figsize=(8, 6))
+wedges, texts, autotexts = ax.pie(
+    grouped.values,
+    labels=None,
+    autopct='%1.1f%%',
+    colors=src_colors,
+    startangle=90,
+    pctdistance=0.78,
+    wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2)
+)
+for t in autotexts:
+    t.set(color='white', fontsize=11, fontweight='bold')
+
 legend_labels = [
-    f"{row['Источник трафика']}: {row['Визиты']} viz ({pct}%)"
-    for (_, row), pct in zip(src.iterrows(), src_pct)
+    f'{name}: {val} вiz ({pct}%)'
+    for name, val, pct in zip(grouped.index, grouped.values, src_pct)
 ]
-ax.legend(wedges, legend_labels, title="Источники трафика", loc="center left",
-          bbox_to_anchor=(1, 0, 0.5, 1), facecolor='#1a2f4e', edgecolor='#4A6080',
+ax.legend(wedges, legend_labels, title="Источники", loc="lower center",
+          bbox_to_anchor=(0.5, -0.15), ncol=1,
+          facecolor='#1a2f4e', edgecolor='#4A6080',
           labelcolor='white', title_fontsize=11)
+
 ax.text(0, 0, f'{total_src}\nвизитов', ha='center', va='center',
         fontsize=13, fontweight='bold', color='white')
 ax.set_title('Источники трафика')

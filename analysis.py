@@ -134,9 +134,9 @@ category_colors = {
 bar_colors = [category_colors.get(cat, '#888888') for cat in src['Источник трафика']]
 
 # Метка = детальный источник
-labels = src['Источник трафика (детально)']
+labels = src['Источник трафика'] + '\n' + src['Источник трафика (детально)']
 
-fig, ax = plt.subplots(figsize=(12, 7))
+fig, ax = plt.subplots(figsize=(12, 9))
 bars = ax.barh(labels, src['Визиты'], color=bar_colors, height=0.6)
 
 fixed_x = src['Визиты'].max() * 1.05

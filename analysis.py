@@ -122,92 +122,66 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import numpy as np
 
-src = sources.copy().sort_values('Визиты', ascending=False).reset_index(drop=True)
+# Предполагаю, что у тебя df с колонкой 'Год' и колонками по регионам
+# Если другая структура — скажи, подправлю
 
-# --- Группируем сегменты < 2% в "Прочее" ---
-total_src = src['Визиты'].sum()
-threshold = total_src * 0.02
-main = src[src['Визиты'] >= threshold].copy()
-other = src[src['Визиты'] < threshold].copy()
+df_plot = electricity.copy()  # замени на своё название датафрейма
 
-if not other.empty:
-    other_row = pd.DataFrame([{
-        'Источник трафика': f'Прочее ({len(other)} источника)',
-        'Визиты': other['Визиты'].sum()
-    }])
-    main = pd.concat([main, other_row], ignore_index=True)
+colors_line = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA', '#F472B6']
+regions = [col for col in df_plot.columns if col != 'Год']
 
-colors_pie = ['#0A7EA4', '#F4A233', '#7BC8A4', '#E87E6B', '#A78BFA',
-              '#34D399', '#F472B6', '#FB923C', '#94A3B8'][:len(main)]
-
-fig, ax = plt.subplots(figsize=(11, 7), facecolor='#0F1F3D')
+fig, ax = plt.subplots(figsize=(13, 7), facecolor='#0F1F3D')
 ax.set_facecolor('#0F1F3D')
 
-wedges, texts = ax.pie(
-    main['Визиты'],
-    labels=None,
-    autopct=None,
-    colors=colors_pie,
-    startangle=90,
-    wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2)
-)
-
-# --- Центр: сумма ---
-ax.text(0, 0, f'{total_src}\nвизитов', ha='center', va='center',
-        fontsize=14, fontweight='bold', color='white')
-
-# --- Аннотации-выноски для сегментов >= 5% ---
-for i, (wedge, (_, row)) in enumerate(zip(wedges, main.iterrows())):
-    pct = row['Визиты'] / total_src * 100
-    if pct < 5:
-        continue
-
-    angle = (wedge.theta2 + wedge.theta1) / 2
-    rad = np.deg2rad(angle)
-    
-    # Точка на краю сегмента
-    x_mid = np.cos(rad) * 0.77
-    y_mid = np.sin(rad) * 0.77
-    
-    # Конец выноски
-    x_out = np.cos(rad) * 1.15
-    y_out = np.sin(rad) * 1.15
-
-    ha = 'left' if x_out > 0 else 'right'
-    x_label = x_out + (0.05 if x_out > 0 else -0.05)
-
+# --- Линии ---
+for i, region in enumerate(regions):
+    color = colors_line[i % len(colors_line)]
+    ax.plot(
+        df_plot['Год'], df_plot[region],
+        color=color, linewidth=2.2, marker='o',
+        markersize=4, label=region
+    )
+    # Подпись последнего значения прямо на линии
+    last_x = df_plot['Год'].iloc[-1]
+    last_y = df_plot[region].iloc[-1]
     ax.annotate(
-        f'{pct:.1f}%\n{row["Визиты"]} визитов',
-        xy=(x_mid, y_mid),
-        xytext=(x_label, y_out),
-        ha=ha, va='center',
-        fontsize=8.5, color='white', fontweight='bold',
-        arrowprops=dict(arrowstyle='-', color='#94A3B8', lw=1.2),
-        bbox=dict(boxstyle='round,pad=0.25', facecolor='#1E3A5F', edgecolor='none', alpha=0.85)
+        f'{last_y:,.0f}',
+        xy=(last_x, last_y),
+        xytext=(8, 0), textcoords='offset points',
+        ha='left', va='center',
+        fontsize=8, color=color, fontweight='bold'
     )
 
-# --- Легенда: Название — визиты (%) ---
-labels_with_pct = [
-    f'{row["Источник трафика"]}:  {row["Визиты"]} viz  ({row["Визиты"]/total_src*100:.1f}%)'
-    for _, row in main.iterrows()
-]
+# --- Сетка ---
+ax.grid(color='#2A3F5F', linestyle='--', linewidth=0.7, alpha=0.6)
+ax.set_axisbelow(True)
 
+# --- Оси ---
+ax.tick_params(colors='#94A3B8', labelsize=9)
+ax.spines[['top', 'right']].set_visible(False)
+ax.spines[['left', 'bottom']].set_color('#2A3F5F')
+ax.yaxis.label.set_color('#94A3B8')
+ax.xaxis.label.set_color('#94A3B8')
+
+ax.set_xlabel('Год', fontsize=10, color='#94A3B8', labelpad=10)
+ax.set_ylabel('Потребление электроэнергии (млн.кВт.час)', fontsize=10,
+              color='#94A3B8', labelpad=10)
+
+# --- Легенда ---
 legend = ax.legend(
-    wedges, labels_with_pct,
-    title="Источники трафика",
-    loc='center left',
-    bbox_to_anchor=(1.0, 0, 0.5, 1),
+    loc='upper left',
     facecolor='#1E3A5F',
     edgecolor='#4A6080',
     labelcolor='white',
     fontsize=9,
-    title_fontsize=10
+    framealpha=0.9
 )
-legend.get_title().set_color('white')
 
-ax.set_title('Источники трафика', color='white', fontsize=14, pad=20)
+ax.set_title('Потребление электроэнергии по субъектам РФ',
+             color='white', fontsize=14, pad=20)
+
 fig.tight_layout()
-plt.savefig('images/02_traffic_sources.png', dpi=150, bbox_inches='tight',
+plt.savefig('images/03_electricity.png', dpi=150, bbox_inches='tight',
             facecolor='#0F1F3D')
 plt.close()
 

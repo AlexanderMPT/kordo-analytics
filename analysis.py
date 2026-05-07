@@ -117,59 +117,36 @@ fig.tight_layout()
 plt.savefig('images/01_visits_conversions.png', dpi=150, bbox_inches='tight')
 plt.close()
 
+# ===================== ГРАФИК 2: Источники трафика (Horizontal Bar) =====================
+src = sources.sort_values('Визиты', ascending=True).copy()
+total_src = src['Визиты'].sum()
+src['Доля'] = (src['Визиты'] / total_src * 100).round(1)
 
-# ===================== ГРАФИК 2: Источники трафика (Donut) — 3 группы =====================
-src = sources.copy()
+# Цвет топ-источника выделяем отдельно
+bar_colors = [ACCENT2 if i == len(src) - 1 else ACCENT for i in range(len(src))]
 
-# Группируем: прямые, поисковые, всё остальное
-def group_source(name):
-    n = str(name).lower()
-    if 'прямые' in n:
-        return 'Прямые заходы'
-    elif 'поисков' in n:
-        return 'Поисковые системы'
-    else:
-        return 'Остальные источники'
+fig, ax = plt.subplots(figsize=(11, 6))
 
-src['Группа'] = src['Источник трафика'].apply(group_source)
-grouped = src.groupby('Группа')['Визиты'].sum()
+bars = ax.barh(src['Источник трафика'], src['Визиты'], color=bar_colors, height=0.6)
 
-# Фиксируем порядок
-order = ['Прямые заходы', 'Поисковые системы', 'Остальные источники']
-grouped = grouped.reindex(order)
+for bar, val, pct in zip(bars, src['Визиты'], src['Доля']):
+    ax.text(
+        bar.get_width() + total_src * 0.005,
+        bar.get_y() + bar.get_height() / 2,
+        f'{int(val)}  ({pct}%)',
+        va='center', color='white', fontsize=9
+    )
 
-total_src = grouped.sum()
-src_pct = (grouped / total_src * 100).round(1)
-src_colors = ['#0A7EA4', '#F4A233', '#7BC8A4']
+ax.set_xlim(0, src['Визиты'].max() * 1.25)
+ax.set_title('Источники трафика', fontsize=13, pad=14)
+ax.set_xlabel('Визиты', fontsize=10)
+ax.grid(axis='x', alpha=0.4)
+ax.spines[['top', 'right']].set_visible(False)
 
-fig, ax = plt.subplots(figsize=(8, 6))
-wedges, texts, autotexts = ax.pie(
-    grouped.values,
-    labels=None,
-    autopct='%1.1f%%',
-    colors=src_colors,
-    startangle=90,
-    pctdistance=0.78,
-    wedgeprops=dict(width=0.55, edgecolor='#0F1F3D', linewidth=2)
-)
-for t in autotexts:
-    t.set(color='white', fontsize=11, fontweight='bold')
-
-legend_labels = [
-    f'{name}: {val} вiz ({pct}%)'
-    for name, val, pct in zip(grouped.index, grouped.values, src_pct)
-]
-ax.legend(wedges, legend_labels, title="Источники", loc="lower center",
-          bbox_to_anchor=(0.5, -0.15), ncol=1,
-          facecolor='#1a2f4e', edgecolor='#4A6080',
-          labelcolor='white', title_fontsize=11)
-
-ax.text(0, 0, f'{total_src}\nвизитов', ha='center', va='center',
-        fontsize=13, fontweight='bold', color='white')
-ax.set_title('Источники трафика')
 fig.tight_layout()
 plt.savefig('images/02_sources.png', dpi=150, bbox_inches='tight')
 plt.close()
+
 # ===================== ГРАФИК 3: Глубина просмотра по возрасту =====================
 age_clean = age.sort_values('Глубина просмотра', ascending=True)
 fig, ax = plt.subplots(figsize=(10, 6))
